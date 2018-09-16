@@ -15,7 +15,11 @@ class App extends Component {
     studentClass: "1/1",
     preFix: "",
     result: [],
-    target: "1/1"
+    target: "1/1",
+    selectedFile:'',
+    image:'',
+    imgPath:''
+
   };
 
   handleOnchange = (e, field) => {
@@ -24,14 +28,35 @@ class App extends Component {
 
   handleSubmit = async e => {
     e.preventDefault();
+    let path=''
+    if(this.state.selectedFile !==''){
+      let storageRef = await firebase.storage().ref(this.state.selectedFile.name)
+      storageRef.put(this.state.selectedFile)
+      path = "https://firebasestorage.googleapis.com/v0/b/srv-mobile-4ac1c.appspot.com/o/"+this.state.selectedFile.name+"?alt=media"
+    }
     const d = new Date();
     const date = d.getDate() + "/" + d.getMonth() + "/" + d.getFullYear();
     await refNews.push({
       header: this.state.header,
       body: this.state.body,
-      date: date.toString()
+      date: date.toString(),
+      img:path
     });
+    this.setState({header:'',body:'',image:'',imgPath:''})
   };
+
+  uploadImage = (e)=>{
+    let objectURL = URL.createObjectURL(e.target.files[0]);
+    this.setState({selectedFile:e.target.files[0],image:objectURL})
+  }
+
+  // fileUploadHandler = async ()=>{
+  //   let storageRef = await firebase.storage().ref(this.state.selectedFile.name)
+  //   storageRef.put(this.state.selectedFile)
+  //   const path = "https://firebasestorage.googleapis.com/v0/b/srv-mobile-4ac1c.appspot.com/o/"+this.state.selectedFile.name+"?alt=media"
+  //   this.setState({imgPath:path})
+  //   console.log(this.state.imgPath)
+  // }
 
   handleSubmitStudent = async e => {
     e.preventDefault();
@@ -81,6 +106,7 @@ class App extends Component {
           <FormGroup>
             <FormControl
               type="text"
+              value={this.state.header}
               placeholder="header"
               onChange={e => this.handleOnchange(e.target.value, "header")}
             />
@@ -88,10 +114,16 @@ class App extends Component {
           <FormGroup>
             <FormControl
               componentClass="textarea"
+              value={this.state.body}
               placeholder="body"
               onChange={e => this.handleOnchange(e.target.value, "body")}
             />
           </FormGroup>
+          <input type="file" onChange={e=>this.uploadImage(e)}/>
+          <br/>
+          <img src={this.state.image}/>
+          <br/>
+          <br/>
           <Button type="submit">Submit</Button>
         </form>
 
